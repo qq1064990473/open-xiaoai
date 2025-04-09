@@ -1,0 +1,32 @@
+[project]
+name = "open-xiaoai-python"
+version = "1.0.0"
+description = "小爱音箱接入小智 AI"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "asyncio>=3.4.3",
+    "cryptography>=44.0.2",
+    "maturin>=1.8.3",
+    "numpy>=2.2.3",
+    "opuslib>=3.0.1",
+    "pyaudio>=0.2.14",
+    "requests>=2.32.3",
+    "websockets>=15.0.1",
+]
+
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+
+[tool.uv]
+# Rebuild package when any rust files change 
+# https://github.com/PyO3/maturin/issues/2314#issuecomment-2488542771
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "Cargo.toml" },
+    { file = "src/**/*.rs" },
+]
