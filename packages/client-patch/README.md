@@ -15,6 +15,7 @@
 > 本教程仅适用于 **小爱音箱 Pro（LX06）** 和 **Xiaomi 智能音箱 Pro（OH2P）** 这两款机型，**其他型号**的小爱音箱可能存在兼容性问题，请勿直接使用！🚨
 
 
+- 小爱音箱 Pro（LX06、OH2P）
 - Windows 电脑（需为 x86_64 架构，用于刷机）
 - 数据线（不能只是充电线，需要连接到电脑传输数据）
   - Type-C（适用于新款小爱音箱 Pro，无需拆机）
@@ -33,7 +34,7 @@
 
 ## 制作固件
 
-或者你也可以按照下面的 2 种方法，制作自定义固件。
+你也可以按照下面的 2 种方法，制作自定义固件。
 
 ### 基础配置
 
@@ -53,12 +54,20 @@ SSH_PASSWORD=open-xiaoai
 
 ### 1. 使用 Docker 打包固件（推荐）
 
+[![Docker Image Version](https://img.shields.io/docker/v/idootop/open-xiaoai?color=%23086DCD&label=docker%20image)](https://hub.docker.com/r/idootop/open-xiaoai)
+
+为了能够正常编译运行该项目，你需要安装以下依赖：
+
+- Docker：https://www.docker.com/get-started/
+
 > [!NOTE]
-> Docker 镜像待发布，敬请期待。
+> Windows 系统推荐使用 Git Bash 终端运行。
+> 
+> CMD 和 PowerShell 终端需要调整下面命令中文件（夹）的实际路径。
 
 ```shell
 # 使用 Docker 进行构建
-docker run -it --rm --env-file $(pwd)/.env -v $(pwd)/assets:/app/assets -v $(pwd)/patches:/app/patches open-xiaoai
+docker run -it --rm --env-file $(pwd)/.env -v $(pwd)/assets:/app/assets -v $(pwd)/patches:/app/patches idootop/open-xiaoai:latest
 
 # ✅ 打包完成，固件文件已复制到 assets 目录...
 # /app/assets/mico_all_92db90ed6_1.88.197/root-patched.squashfs
@@ -66,11 +75,10 @@ docker run -it --rm --env-file $(pwd)/.env -v $(pwd)/assets:/app/assets -v $(pwd
 
 ### 2. 本地构建（macOS、Linux）
 
-为了能够正常编译运行该项目，你需要安装以下依赖环境：
+为了能够正常编译运行该项目，你需要安装以下依赖：
 
-- Docker：https://www.docker.com/get-started/
-- Python：https://www.python.org/downloads/
-- Node.js: https://nodejs.org/zh-cn/download
+- Python 3.x：https://www.python.org/downloads/
+- Node.js 22.x: https://nodejs.org/zh-cn/download
 
 ```bash
 # 安装依赖
