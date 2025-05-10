@@ -27,7 +27,7 @@ fi
 
 
 WORK_DIR="$BASE_DIR/open-xiaoai/kws"
-KWS_BIN="$WORK_DIR/kws"
+KWS_DEBUG_BIN="$WORK_DIR/kws-debug"
 
 if [ ! -d "$WORK_DIR" ]; then
     mkdir -p "$WORK_DIR"
@@ -37,46 +37,27 @@ if [ ! -f "$WORK_DIR/models/encoder.onnx" ]; then
     echo "🔥 正在下载模型文件..."
     curl -L -# -o "$WORK_DIR/kws.tar.gz" "$DOWNLOAD_BASE_URL/kws.tar.gz"
     tar -xzvf "$WORK_DIR/kws.tar.gz" -C "$WORK_DIR"
-    chmod +x "$KWS_BIN"
     rm "$WORK_DIR/kws.tar.gz"
     echo "✅ 模型文件下载完毕"
 fi
 
-
-CONFIG_DIR="/data/open-xiaoai/kws"
-MONITOR_BIN="$CONFIG_DIR/monitor"
-
-if [ ! -d "$CONFIG_DIR" ]; then
-    mkdir -p "$CONFIG_DIR"
+if [ ! -f "$KWS_DEBUG_BIN" ]; then
+    echo "🔥 正在下载 kws-debug 文件..."
+    curl -L -# -o "$KWS_DEBUG_BIN" "$DOWNLOAD_BASE_URL/kws-debug"
+    chmod +x "$KWS_DEBUG_BIN"
+    echo "✅ kws-debug 文件下载完毕"
 fi
 
-if [ ! -f "$MONITOR_BIN" ]; then
-    curl -L -# -o "$MONITOR_BIN" "$DOWNLOAD_BASE_URL/monitor"
-    chmod +x "$MONITOR_BIN"
-fi
+echo "🔥 正在启动唤醒词识别调试服务，请耐心等待..."
+echo "🐢 模型加载较慢，请在提示 Started! Please speak 后，再使用自定义唤醒词"
 
-if [ ! -f "$CONFIG_DIR/keywords.txt" ]; then
-    echo "n ǐ h ǎo x iǎo zh ì @你好小智" >> "$CONFIG_DIR/keywords.txt"
-    echo "d òu b āo d òu b āo @豆包豆包" >> "$CONFIG_DIR/keywords.txt"
-    echo "t iān m āo j īng l íng @天猫精灵" >> "$CONFIG_DIR/keywords.txt"
-    echo "x iǎo d ù x iǎo d ù @小度小度" >> "$CONFIG_DIR/keywords.txt"
-    echo "✅ 默认唤醒词已创建"
-fi
-
-echo "🔥 正在启动唤醒词识别服务，请耐心等待..."
-echo "🐢 模型加载较慢，请在语音提示初始化成功后，再使用自定义唤醒词"
-
-kill -9 `ps|grep "open-xiaoai/kws/monitor"|grep -v grep|awk '{print $1}'` > /dev/null 2>&1 || true
-"$MONITOR_BIN" &
-
-kill -9 `ps|grep "open-xiaoai/kws/kws"|grep -v grep|awk '{print $1}'` > /dev/null 2>&1 || true
-"$KWS_BIN" \
+kill -9 `ps|grep "open-xiaoai/kws/kws-debug"|grep -v grep|awk '{print $1}'` > /dev/null 2>&1 || true
+"$KWS_DEBUG_BIN" \
     --model-type=zipformer2 \
     --tokens="$WORK_DIR/models/tokens.txt" \
     --encoder="$WORK_DIR/models/encoder.onnx" \
     --decoder="$WORK_DIR/models/decoder.onnx" \
     --joiner="$WORK_DIR/models/joiner.onnx" \
-    --keywords-file="/data/open-xiaoai/kws/keywords.txt" \
     --provider=cpu \
     --num-threads=1 \
     --chunk-size=1024 \
