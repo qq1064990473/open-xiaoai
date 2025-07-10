@@ -73,6 +73,10 @@ class XiaoAI:
 
         if event_type == "instruction" and event_data.get("NewLine"):
             line = json_decode(event_data.get("NewLine"))
+            print(line)
+            if line:
+                name = line.get("header", {}).get("name", "")
+                cls.speaker.last_directive_name = name  # ✅ 记录
             if (
                 line
                 and line.get("header", {}).get("namespace") == "SpeechRecognizer"
@@ -87,6 +91,17 @@ class XiaoAI:
                     await EventManager.wakeup(text, "xiaoai")
         elif event_type == "playing":
             get_speaker().status = event_data.lower()
+            if (
+                line
+                and line.get("header", {}).get("namespace") == "PlaybackController"
+            ):
+                name = line.get("header", {}).get("name")
+                if name == "Pause":
+                    print("🛑 收到 Pause 指令")
+                    await cls.speaker.set_playing(False)
+                elif name == "Play":
+                    print("▶️ 收到 Play 指令")
+                    await cls.speaker.set_playing(True)
 
     @classmethod
     def __init_background_event_loop(cls):

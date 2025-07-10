@@ -1,4 +1,8 @@
 import asyncio
+import music_player
+import traceback
+
+from xiaozhi.services import speaker
 
 
 async def before_wakeup(speaker, text, source):
@@ -24,7 +28,19 @@ async def before_wakeup(speaker, text, source):
         await speaker.play(text="小智来了，主人有什么吩咐？")
         # 唤醒小智 AI
         return True
+    if source == "xiaoai" and text[:4] == "播放歌曲":
+        await speaker.abort_xiaoai()
+        await asyncio.sleep(2)
+        song_name = text[4:].strip()
+        await speaker.play(text=f"正在为您播放歌曲：{song_name}")
 
+        try:
+            await music_player.start_play_with_status_check(song_name, speaker)
+        except Exception as e:
+            print(f"播放异常: {e}")
+            traceback.print_exc()
+            await speaker.play(text="抱歉，播放歌曲时出错了。")
+            return False
 
 async def after_wakeup(speaker):
     """
@@ -66,7 +82,7 @@ APP_CONFIG = {
         "OTA_URL": "https://api.tenclass.net/xiaozhi/ota/",
         "WEBSOCKET_URL": "wss://api.tenclass.net/xiaozhi/v1/",
         "WEBSOCKET_ACCESS_TOKEN": "", #（可选）一般用不到这个值
-        "DEVICE_ID": "", #（可选）默认自动生成
-        "VERIFICATION_CODE": "", # 首次登陆时，验证码会在这里更新
+        "DEVICE_ID": "1a:5a:4e:e2:70:f5", #（可选）默认自动生成
+        "VERIFICATION_CODE": "105077", # 首次登陆时，验证码会在这里更新
     },
 }

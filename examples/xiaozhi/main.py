@@ -1,6 +1,7 @@
 import signal
 import sys
 
+
 from xiaozhi.xiaoai import XiaoAI
 from xiaozhi.xiaozhi import XiaoZhi
 
@@ -22,3 +23,5 @@ if __name__ == "__main__":
     XiaoAI.setup_mode()
     setup_graceful_shutdown()
     sys.exit(main())
+
+
