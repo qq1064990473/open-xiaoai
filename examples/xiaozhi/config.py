@@ -1,5 +1,5 @@
 import asyncio
-import music_player
+import xiaozhi.music_player as music_player
 import traceback
 
 from xiaozhi.services import speaker

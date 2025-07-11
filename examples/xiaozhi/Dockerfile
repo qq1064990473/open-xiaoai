@@ -2,6 +2,8 @@ FROM python:3.12-slim AS builder
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+EXPOSE 4399
+
 # 更新源
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl build-essential libopus-dev \

@@ -9,7 +9,7 @@ use super::file::{FileMonitor, FileMonitorEvent};
 pub struct InstructionMonitor;
 
 static INSTRUCTION_FILE_PATH: &str = "/tmp/mico_aivs_lab/instruction.log";
-//static INSTRUCTION_FILE_PATH: &str = r#"C:\tmp\mico_aivs_lab\instruction.log"#;
+
 impl InstructionMonitor {
     pub async fn start<F, Fut>(on_update: F)
     where
@@ -58,13 +58,10 @@ pub struct RecognizeResult {
 #[serde(untagged)]
 pub enum Payload {
     RecognizeResultPayload {
-        #[serde(default)]
-         is_final: bool,
-        #[serde(default)]
+        is_final: bool,
         is_vad_begin: bool,
-        #[serde(default)]
         results: Vec<RecognizeResult>,
-},
+    },
     StopCapturePayload {
         stop_time: u64,
     },
