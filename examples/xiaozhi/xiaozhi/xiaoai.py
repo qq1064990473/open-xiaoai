@@ -73,7 +73,7 @@ class XiaoAI:
 
         if event_type == "instruction" and event_data.get("NewLine"):
             line = json_decode(event_data.get("NewLine"))
-            print(line)
+            # print(line)
             if line:
                 name = line.get("header", {}).get("name", "")
                 cls.speaker.last_directive_name = name  # ✅ 记录
@@ -89,19 +89,19 @@ class XiaoAI:
                 elif text and line.get("payload", {}).get("is_final"):
                     print(f"🔥 收到指令: {text}")
                     await EventManager.wakeup(text, "xiaoai")
-        elif event_type == "playing":
-            get_speaker().status = event_data.lower()
             if (
                 line
                 and line.get("header", {}).get("namespace") == "PlaybackController"
             ):
                 name = line.get("header", {}).get("name")
                 if name == "Pause":
+                    cls.speaker.received_pause = True
                     print("🛑 收到 Pause 指令")
-                    await cls.speaker.set_playing(False)
                 elif name == "Play":
                     print("▶️ 收到 Play 指令")
-                    await cls.speaker.set_playing(True)
+        elif event_type == "playing":
+            get_speaker().status = event_data.lower()
+            
 
     @classmethod
     def __init_background_event_loop(cls):

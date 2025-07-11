@@ -6,6 +6,7 @@ from typing import Optional
 from aiofiles import open as aioopen
 
 
+
 # 用于避免重复播放
 played_mids = set()
 
@@ -67,7 +68,7 @@ async def play_song_with_status_check(session, song: dict, speaker) -> bool:
     title = song["title"]
     artist = song["singer"][0]["name"]
     mid = song["mid"]
-    interval = song.get("interval", 180)  # 默认时长180秒
+    interval = song.get("interval", 180)  # 秒，默认180秒
 
     url = await get_play_url(session, mid)
     if not url:
@@ -77,30 +78,61 @@ async def play_song_with_status_check(session, song: dict, speaker) -> bool:
     print(f"\n🎵 正在播放: {title} - {artist}\n▶️ 播放链接: {url}")
     await speaker.play(url=url, blocking=False)
 
+    # 记录播放
     played_mids.add(mid)
-    # async with aioopen(playlist_file, "a") as f:
-    #     await f.write(f"{mid} # {title} - {artist}\n")
+    async with aioopen(playlist_file, "a") as f:
+        await f.write(f"{mid} # {title} - {artist}\n")
 
+    # 初始化变量
+    speaker.received_pause = False  # 清空打断记录
     start_time = time.time()
 
     while True:
         status = await speaker.get_playing(sync=True)
         elapsed = time.time() - start_time
+        last_directive = getattr(speaker, "last_directive_name", None)
 
-        # 三个条件都满足时，才视为播放完成
-        if (status == "idle" and
-            getattr(speaker, "last_directive_name", None) == "Finish" and
-            elapsed >= interval):
-            print(f"✅ 歌曲播放完成: {title} - {artist}")
-            break
-
-        # 如果状态是 idle，但条件不满足，说明被打断了
-        if status == "idle":
-            print(f"⏸️ 播放被打断: 状态为 idle，但最后指令是 {getattr(speaker, 'last_directive_name', None)}，播放时长 {elapsed:.1f}秒，未达到歌曲时长 {interval}秒")
+        if status != "idle":
+            await asyncio.sleep(1)
+            continue
+        await asyncio.sleep(0.5)
+        final_status = await speaker.get_playing(sync=True)
+        final_directive = getattr(speaker, "last_directive_name", None)
+        final_elapsed = time.time() - start_time
+        if last_directive == "Finish":
+            if (
+                final_status == "idle"
+                and final_directive == "Finish"
+                and final_elapsed >= interval
+            ):
+                print(f"✅ 歌曲播放完成: {title} - {artist}")
+                speaker.received_pause = False
+                break
+            else:
+                print("⏸️ 播放被打断（Finish + idle）")
+                speaker.received_pause = False
+                played_mids.clear()
+                return False
+        else:
+            print(f"⚠️ 状态 idle + 指令 {last_directive}，等待 Finish 中...")
+            # 等待 Finish 指令到达
+            while True:
+                directive = getattr(speaker, "last_directive_name", None)
+                print(f"[监听] 当前指令: {directive}")
+                if directive == "Finish":
+                    break
+                await asyncio.sleep(0.5)
+        if speaker.received_pause:
+            print("⏸️ 播放被打断（Pause + Finish）")
+            speaker.received_pause = False
             played_mids.clear()
             return False
-
-        await asyncio.sleep(1)
+        else:
+            print("🔁 假打断，自动恢复播放")
+            await speaker.play(url=url, blocking=False)
+            start_time = time.time()
+            speaker.received_pause = False
+            continue
 
     return True
 
@@ -142,4 +174,5 @@ async def start_play_with_status_check(query: str, speaker):
             print("❌ 播放失败或被打断")
             return
 
+        # ✅ 继续播放同歌手其他歌曲
         await play_singer_playlist_with_status_check(singer_name, first_mid, speaker)

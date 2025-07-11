@@ -17,6 +17,7 @@ class SpeakerManager:
     def __init__(self):
         set_speaker(self)
         self.last_directive_name = ""  # ✅ 添加字段记录上一个指令名
+        self.received_pause = False   #是否接收到暂停指令
 
     async def get_playing(self, sync=False):
         """获取播放状态"""
